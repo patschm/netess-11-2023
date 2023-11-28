@@ -19,11 +19,11 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        EnvironmentSettings();
+        //EnvironmentSettings();
         //Configuration();
         //Secrets();
         //Logging();
-        //DependencyInjection();
+        DependencyInjection();
         //AllInOne();
     }
 
@@ -87,6 +87,8 @@ internal class Program
         // If not done: dotnet user-secrets init
         // dotnet user-secrets set "Big:Secret" "Password" (optionally add for which project: --project "D:\Net Essentials\Demos\Module 2\InfraStructure)"
         var secret = config.GetSection("Big:Secret").Value;
+        config.GetSection("Big:Secret").Value = "Hoi";
+
         // or
         secret = config["Big:Secret"];
         Console.WriteLine($"The big secret is: {secret}");
@@ -104,32 +106,41 @@ internal class Program
 
         var factory = LoggerFactory.Create(bld => {
             // In code:
-            bld.AddFilter((cat, lvl) => {
-                return cat == typeof(LogVictim).FullName && lvl <= LogLevel.Information;
-            });
+            // bld.AddFilter((cat, lvl) => {
+            //     return cat == typeof(LogVictim).FullName && lvl >= LogLevel.Trace;
+            // });
             // In config:
-            //bld.AddConfiguration(config.GetSection("Logging"));
+            bld.AddConfiguration(config.GetSection("Logging"));
 
             bld.ClearProviders();
             // From package: Microsoft.Extensions.Logging.Console
             bld.AddConsole();
+            bld.AddEventLog();
         });
 
         ILogger<LogVictim> logger = factory.CreateLogger<LogVictim>();
+        
         var obj = new LogVictim(logger);
         obj.DoSomeStuff();
+
+        ILogger<Program> log2 = factory.CreateLogger<Program>();
+
+        log2.LogInformation("Hello Program");
     }
     private static void DependencyInjection()
     {
         var factory = new DefaultServiceProviderFactory();
         var services = new ServiceCollection();
         var builder = factory.CreateBuilder(services);
-        builder.AddHostedService<ConsoleHost>();
-        builder.AddTransient<ICounter, Counter>();
+        //builder.AddHostedService<ConsoleHost>();
+        //builder.AddTransient<ICounter, Counter>();
         //builder.AddScoped<ICounter, Counter>();
-        //builder.AddSingleton<ICounter, Counter>();
+        builder.AddSingleton<ICounter, Counter>();
+        builder.AddTransient<IRekenMachine, Calculator>();
 
         var provider = builder.BuildServiceProvider();
+
+        ICounter cnt = provider.GetRequiredService<ICounter>();
 
         Console.WriteLine("==== Run 1 ====");
         using (var scope = provider.CreateScope())
@@ -147,11 +158,15 @@ internal class Program
         {
             for (int i = 0; i < 5; i++)
             {
-                var _counter = scope.ServiceProvider.GetRequiredService<ICounter>();
+                var _counter =  scope.ServiceProvider.GetRequiredService<ICounter>();
                 _counter.Increment();
                 _counter.Show();
             }
         }
+
+        //var test = new Calculator(cnt);
+        var test = provider.GetRequiredService<IRekenMachine>();
+        test.DoeIets();
     }
     private static void AllInOne()
     {
