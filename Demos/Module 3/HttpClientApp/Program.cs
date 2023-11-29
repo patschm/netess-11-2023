@@ -16,24 +16,36 @@ public class Program
 {
     static void Main(string[] args)
     {
+        //FtpWebRequest ftp = WebRequest.Create("ftp://jhwjokdhjfoi") as FtpWebRequest;
         BasicClient();
-        //DIClient();
+       // DIClient();
         //StrongClient();
-        //PostClient();
+       // PostClient();
         //AuthClient();
     }
 
     private static void BasicClient()
-    {
+    {  
         HttpClient client = new HttpClient();
-        client.BaseAddress = new Uri("https://localhost:8001/");
-
-        var response = client.GetAsync("WeatherForecast").Result;
-        if (response.IsSuccessStatusCode)
-        {
-            var strData = response.Content.ReadAsStringAsync().Result;
-            Console.WriteLine(strData);
+        client.BaseAddress = new Uri("https://hetweer.azurewebsites.net/");
+        for (int i = 0; i < 1000; i++)
+        {          
+            var response = client.GetAsync("WeatherForecast").Result;
+            Console.WriteLine(response.StatusCode);
         }
+        //if (response.IsSuccessStatusCode)
+        //{
+        //    foreach(var head in response.Headers)
+        //    {
+        //        Console.WriteLine($"{head.Key}: {string.Join(',', head.Value)}");
+        //    }
+        //    foreach(var tail in response.Content.Headers)
+        //    {
+        //        Console.WriteLine($"{tail.Key}: {string.Join(',', tail.Value)}");
+        //    }
+        //    var strData = response.Content.ReadAsStringAsync().Result;
+        //    Console.WriteLine(strData);
+        //}
     }
     private static void DIClient()
     {
